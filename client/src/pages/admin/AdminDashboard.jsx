@@ -5,7 +5,6 @@ import StatusBadge from '../../components/StatusBadge.jsx';
 import { Loader, EmptyState } from '../../components/Loader.jsx';
 import { AdminAPI, FoodAPI, assetUrl } from '../../services/api.js';
 import { formatNaira, formatDateTime, titleCase } from '../../utils/format.js';
-import { formatNaira, formatDateTime, titleCase } from '../../utils/format.js';
 
 export const ADMIN_NAV = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: '🏠', end: true },
