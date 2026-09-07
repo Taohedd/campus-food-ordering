@@ -4,8 +4,6 @@
 -- (bcrypt-hashed below — never store plain text in real use)
 -- =========================================================
 
-USE campus_food_ordering;
-
 -- Users: 1 admin, 3 vendor-owners, 2 customers
 INSERT INTO users (full_name, email, phone, password, role, status) VALUES
 ('System Administrator', 'admin@tpi.edu.ng', '08010000001', '$2b$10$2uJu0KQr8X0JdI2eZIaZ6eYlewSUon9MA5.rd1T2HxKt.ondKvYDW', 'admin', 'active'),
