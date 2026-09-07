@@ -59,8 +59,8 @@ const VendorController = {
       const vendor = await VendorModel.findByUserId(req.user.id);
       if (!vendor) return res.status(404).json({ success: false, message: 'Vendor profile not found.' });
       if (!req.file) return res.status(400).json({ success: false, message: 'No image file uploaded.' });
-      await VendorModel.updateLogo(vendor.id, req.file.filename);
-      res.json({ success: true, message: 'Logo updated.', logo: req.file.filename });
+      await VendorModel.updateLogo(vendor.id, req.file.path);
+      res.json({ success: true, message: 'Logo updated.', logo: req.file.path });
     } catch (err) { next(err); }
   },
 

@@ -52,7 +52,7 @@ const FoodController = {
       if (isNaN(numericPrice) || numericPrice <= 0) {
         return res.status(400).json({ success: false, message: 'A valid price greater than zero is required.' });
       }
-      const image = req.file ? req.file.filename : null;
+      const image = req.file ? req.file.path : null;
       const id = await FoodModel.create({
         vendorId: vendor.id,
         categoryId: categoryId || null,
@@ -86,7 +86,7 @@ const FoodController = {
         availability: availability || food.availability
       });
       if (req.file) {
-        await FoodModel.updateImage(food.id, req.file.filename);
+        await FoodModel.updateImage(food.id, req.file.path);
       }
       res.json({ success: true, message: 'Food item updated.' });
     } catch (err) { next(err); }
