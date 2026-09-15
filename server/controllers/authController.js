@@ -18,6 +18,24 @@ function sanitizeUser(user) {
   return safe;
 }
 
+// Shared credential check used by both the general login and the admin login.
+// Returns { user } on success, or { error: { status, message } } on failure.
+async function authenticateCredentials(email, password) {
+  const user = await UserModel.findByEmail(email.toLowerCase().trim());
+  if (!user) {
+    return { error: { status: 401, message: 'Invalid email or password.' } };
+  }
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) {
+    await ActivityLogModel.log({ userId: user.id, action: 'failed_login', details: `Failed login attempt for ${email}` });
+    return { error: { status: 401, message: 'Invalid email or password.' } };
+  }
+  if (user.status === 'suspended') {
+    return { error: { status: 403, message: 'Your account has been suspended. Please contact the administrator.' } };
+  }
+  return { user };
+}
+
 const AuthController = {
   // POST /api/auth/register/customer
   async registerCustomer(req, res, next) {
@@ -71,21 +89,16 @@ const AuthController = {
   },
 
   // POST /api/auth/login
+  // Handles customer and vendor sign-in. Admin accounts are rejected here and
+  // must use the dedicated /api/auth/admin-login endpoint instead.
   async login(req, res, next) {
     try {
       const { email, password } = req.body;
-      const user = await UserModel.findByEmail(email.toLowerCase().trim());
-      if (!user) {
-        return res.status(401).json({ success: false, message: 'Invalid email or password.' });
-      }
-      const match = await bcrypt.compare(password, user.password);
-      if (!match) {
-        await ActivityLogModel.log({ userId: user.id, action: 'failed_login', details: `Failed login attempt for ${email}` });
-        return res.status(401).json({ success: false, message: 'Invalid email or password.' });
-      }
+      const { user, error } = await authenticateCredentials(email, password);
+      if (error) return res.status(error.status).json({ success: false, message: error.message });
 
-      if (user.status === 'suspended') {
-        return res.status(403).json({ success: false, message: 'Your account has been suspended. Please contact the administrator.' });
+      if (user.role === 'admin') {
+        return res.status(403).json({ success: false, message: 'Administrators must sign in through the admin login.' });
       }
 
       let vendorInfo = null;
@@ -111,6 +124,38 @@ const AuthController = {
         token,
         user: sanitizeUser(user),
         vendor: vendorInfo ? { id: vendorInfo.id, businessName: vendorInfo.business_name } : null
+      });
+    } catch (err) { next(err); }
+  },
+
+  // POST /api/auth/admin-login
+  // Dedicated sign-in for administrators only. Any non-admin account (even
+  // with correct credentials) is rejected here and pointed back at the
+  // general login instead.
+  async loginAdmin(req, res, next) {
+    try {
+      const { email, password } = req.body;
+      const { user, error } = await authenticateCredentials(email, password);
+      if (error) return res.status(error.status).json({ success: false, message: error.message });
+
+      if (user.role !== 'admin') {
+        await ActivityLogModel.log({
+          userId: user.id,
+          action: 'failed_login',
+          details: `Non-admin account (${user.role}) attempted admin login: ${email}`
+        });
+        return res.status(403).json({ success: false, message: 'This login is for administrators only.' });
+      }
+
+      const token = signToken(user);
+      await ActivityLogModel.log({ userId: user.id, action: 'successful_login', details: 'admin logged in' });
+
+      res.json({
+        success: true,
+        message: 'Login successful.',
+        token,
+        user: sanitizeUser(user),
+        vendor: null
       });
     } catch (err) { next(err); }
   },

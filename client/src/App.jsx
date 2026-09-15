@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 // Public pages
 import Landing from './pages/public/Landing.jsx';
 import Login from './pages/public/Login.jsx';
+import AdminLogin from './pages/public/AdminLogin.jsx';
 import RegisterChoice from './pages/public/RegisterChoice.jsx';
 import CustomerRegister from './pages/public/CustomerRegister.jsx';
 import VendorRegister from './pages/public/VendorRegister.jsx';
@@ -52,6 +53,7 @@ export default function App() {
       {/* Public */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/register" element={<RegisterChoice />} />
       <Route path="/register/customer" element={<CustomerRegister />} />
       <Route path="/register/vendor" element={<VendorRegister />} />

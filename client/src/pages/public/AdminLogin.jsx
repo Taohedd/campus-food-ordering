@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PublicLayout from '../../layouts/PublicLayout.jsx';
 import { AuthAPI } from '../../services/api.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 
-export default function Login() {
+// Dedicated sign-in for administrators. Deliberately not linked from the
+// public site — reached only by going to /admin/login directly.
+export default function AdminLogin() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,10 +21,9 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const { data } = await AuthAPI.login(form);
+      const { data } = await AuthAPI.adminLogin(form);
       login(data.token, data.user, data.vendor);
-      const redirectTo = location.state?.from
-        || (data.user.role === 'vendor' ? '/vendor/dashboard' : '/customer/dashboard');
+      const redirectTo = location.state?.from || '/admin/dashboard';
       navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message);
@@ -34,14 +35,14 @@ export default function Login() {
   return (
     <PublicLayout>
       <section className="section container" style={{ maxWidth: 460 }}>
-        <h1 style={{ fontSize: '2rem' }}>Welcome back</h1>
-        <p>Log in to order food or manage your vendor stall.</p>
+        <h1 style={{ fontSize: '2rem' }}>Admin Login</h1>
+        <p>Sign in to administer the platform.</p>
         <div className="form-card mt-24">
           {error && <div className="alert alert-error">{error}</div>}
           <form onSubmit={onSubmit}>
             <div className="field">
               <label>Email Address</label>
-              <input type="email" name="email" required value={form.email} onChange={onChange} placeholder="you@tpi.edu.ng" />
+              <input type="email" name="email" required value={form.email} onChange={onChange} placeholder="admin@tpi.edu.ng" />
             </div>
             <div className="field">
               <label>Password</label>
@@ -49,9 +50,6 @@ export default function Login() {
             </div>
             <button className="btn btn-primary btn-block" disabled={loading}>{loading ? 'Logging in…' : 'Log In'}</button>
           </form>
-          <p className="mt-16" style={{ textAlign: 'center' }}>
-            Don't have an account? <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Register</Link>
-          </p>
         </div>
       </section>
     </PublicLayout>

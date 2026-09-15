@@ -10,6 +10,7 @@ const {
 router.post('/register/customer', authLimiter, registerCustomerRules, handleValidation, AuthController.registerCustomer);
 router.post('/register/vendor', authLimiter, registerVendorRules, handleValidation, AuthController.registerVendor);
 router.post('/login', authLimiter, loginRules, handleValidation, AuthController.login);
+router.post('/admin-login', authLimiter, loginRules, handleValidation, AuthController.loginAdmin);
 
 router.get('/me', authenticate, AuthController.me);
 router.put('/profile', authenticate, AuthController.updateProfile);
